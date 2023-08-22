@@ -1,88 +1,87 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import pandas as pd
-import pandas.errors
 
-# Vérification de l'existence du fichier CSV et de sa non-vacuité
+# Erreur de CSV?
 try:
     data = pd.read_csv('data/data.csv')
 except FileNotFoundError:
-    print("Le fichier data.csv n'a pas été trouvé!")
+    print("The file data.csv was not found!")
     exit()
-except pandas.errors.EmptyDataError:
-    print("Le fichier data.csv est vide!")
+except pd.errors.EmptyDataError:
+    print("The file data.csv is empty!")
     exit()
 
-
-# Vérification si le fichier est vide ou ne contient pas les colonnes attendues
 if data.empty or 'km' not in data.columns or 'price' not in data.columns:
-    print("Le fichier est vide ou ne contient pas les colonnes requises (km, price)!")
+    print("The file is empty or does not contain the required columns (km, price)!")
     exit()
 try:
     data['km'] = pd.to_numeric(data['km'])
     data['price'] = pd.to_numeric(data['price'])
 except ValueError:
-    print("Erreur: Les données contiennent des valeurs non numériques!")
+    print("Error: The data contains non-numeric values!")
     exit()
 
 if len(data) == 0:
-    print("Le fichier CSV est vide!")
+    print("The CSV file is empty!")
     exit()
 
-X = data['km'].values
-y = data['price'].values
+kilometrage = data['km'].values
+prices = data['price'].values
 
-# Normalisation des données
-X_mean = sum(X) / len(X)
-X_std = (sum((xi - X_mean) ** 2 for xi in X) / len(X)) ** 0.5
-X_normalized = [(xi - X_mean) / X_std for xi in X]
+# Data normalisation
+# moyenne
+kilometrage_mean = sum(kilometrage) / len(kilometrage)
+# ecart type:
+# **2 carrer, **0.5 racine carrer
+kilometrage_std = (sum((mi - kilometrage_mean) ** 2 for mi in kilometrage) / len(kilometrage)) ** 0.5
+# normalisation
+kilometrage_normalized = [(mi - kilometrage_mean) / kilometrage_std for mi in kilometrage]
 
-# Initialisation des paramètres
 theta0 = 0
 theta1 = 0
 learning_rate = 0.001
 iterations = 10000
-m = len(y)
+len_prices = len(prices)
 
-# Fonction d'hypothèse
-def estimate_price(mileage):
-    return theta0 + theta1 * mileage
+def estimate_price(kilometrage):
+    return theta0 + theta1 * kilometrage
 
-# Vérification de la convergence
-prev_cost = float('inf')
+previous_cost = float('inf')
 
-# Entraînement du modèle avec descente de gradient
-for _ in range(iterations):
+# Model de gradient
+# L'entraînement du modèle utilise la descente de gradient pour trouver les valeurs optimales de theta0 et theta1
+for y in range(iterations):
     sum_errors = 0
-    sum_errors_x = 0
-    for i in range(m):
-        sum_errors += (estimate_price(X_normalized[i]) - y[i])
-        sum_errors_x += (estimate_price(X_normalized[i]) - y[i]) * X_normalized[i]
+    sum_errors_kilometrage = 0
+    # difference entre valeur prédite et valeur reel == errors
+    for i in range(len_prices):
+        sum_errors += (estimate_price(kilometrage_normalized[i]) - prices[i])
+        sum_errors_kilometrage += (estimate_price(kilometrage_normalized[i]) - prices[i]) * kilometrage_normalized[i]
     
-    temp_theta0 = theta0 - learning_rate * (1/m) * sum_errors
-    temp_theta1 = theta1 - learning_rate * (1/m) * sum_errors_x
+    temp_theta0 = theta0 - learning_rate * (1/len_prices) * sum_errors
+    temp_theta1 = theta1 - learning_rate * (1/len_prices) * sum_errors_kilometrage
     
     theta0 = temp_theta0
     theta1 = temp_theta1
     
-    # Calcul de la fonction de coût
-    cost = sum([(estimate_price(X_normalized[i]) - y[i])**2 for i in range(m)]) / (2*m)
-    if cost >= prev_cost:
-        print("La descente de gradient ne converge pas!")
+    # calcule de cout ca mesure à quel point le modèle s'adapte aux données.
+    cost = sum([(estimate_price(kilometrage_normalized[i]) - prices[i])**2 for i in range(len_prices)]) / (2*len_prices)
+    if cost >= previous_cost:
+		# problème avec le taux d'apprentissage
+        print("Gradient descent does not converge!")
         exit()
-    prev_cost = cost
+    previous_cost = cost
 
-# Sauvegarder les paramètres
 with open('model_params/parameters.txt', 'w') as f:
     f.write(f"{theta0}\n")
     f.write(f"{theta1}\n")
-    f.write(f"{X_mean}\n")
-    f.write(f"{X_std}\n")
+    f.write(f"{kilometrage_mean}\n")
+    f.write(f"{kilometrage_std}\n")
 
-# Visualisation des données et de la ligne de régression
-plt.scatter(X, y, color='blue', label='Data points')
-plt.plot(X, [estimate_price((x - X_mean) / X_std) for x in X], color='red', label='Regression line')
-plt.xlabel('Kilométrage')
-plt.ylabel('Prix')
+# Data visualisation
+plt.scatter(kilometrage, prices, color='blue', label='Data points')
+plt.plot(kilometrage, [estimate_price((x - kilometrage_mean) / kilometrage_std) for x in kilometrage], color='red', label='Regression line')
+plt.xlabel('kilometrage')
+plt.ylabel('Price')
 plt.legend()
 plt.show()

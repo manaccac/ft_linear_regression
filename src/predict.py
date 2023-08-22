@@ -3,9 +3,9 @@ def load_parameters():
         with open('model_params/parameters.txt', 'r') as f:
             theta0 = float(f.readline())
             theta1 = float(f.readline())
-            X_mean = float(f.readline())
-            X_std = float(f.readline())
-        return theta0, theta1, X_mean, X_std
+            kilometrage_mean = float(f.readline())
+            kilometrage_std = float(f.readline())
+        return theta0, theta1, kilometrage_mean, kilometrage_std
     except FileNotFoundError:
         print("Erreur: Le fichier de paramètres du modèle est introuvable!")
         exit()
@@ -18,7 +18,7 @@ def estimate_price(mileage, theta0, theta1):
 
 def main():
     # Charger les paramètres
-    theta0, theta1, X_mean, X_std = load_parameters()
+    theta0, theta1, kilometrage_mean, kilometrage_std = load_parameters()
 
     try:
         mileage = float(input("Entrez le kilométrage de la voiture: "))
@@ -27,7 +27,7 @@ def main():
         return
 
     # Normaliser le kilométrage
-    mileage_normalized = (mileage - X_mean) / X_std
+    mileage_normalized = (mileage - kilometrage_mean) / kilometrage_std
 
     # Prédire le prix en utilisant le modèle entraîné
     predicted_price = estimate_price(mileage_normalized, theta0, theta1)
