@@ -25,19 +25,12 @@ except ValueError:
     print("Erreur: Les données contiennent des valeurs non numériques!")
     exit()
 
-
-# Filtrage des valeurs aberrantes
-Q1 = data.quantile(0.25)
-Q3 = data.quantile(0.75)
-IQR = Q3 - Q1
-data_filtered = data[~((data < (Q1 - 1.5 * IQR)) | (data > (Q3 + 1.5 * IQR))).any(axis=1)]
-
 if len(data) == 0:
     print("Le fichier CSV est vide!")
     exit()
 
-X = data_filtered['km'].values
-y = data_filtered['price'].values
+X = data['km'].values
+y = data['price'].values
 
 # Normalisation des données
 X_mean = sum(X) / len(X)

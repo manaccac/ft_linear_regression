@@ -20,18 +20,20 @@ def main():
     # Charger les paramètres
     theta0, theta1, X_mean, X_std = load_parameters()
 
-    # Demander à l'utilisateur d'entrer un kilométrage
     try:
         mileage = float(input("Entrez le kilométrage de la voiture: "))
     except ValueError:
         print("Erreur: Veuillez entrer une valeur numérique pour le kilométrage!")
         return
 
-    # Normaliser le kilométrage (comme nous l'avons fait pendant l'entraînement)
+    # Normaliser le kilométrage
     mileage_normalized = (mileage - X_mean) / X_std
 
     # Prédire le prix en utilisant le modèle entraîné
     predicted_price = estimate_price(mileage_normalized, theta0, theta1)
+
+    if (predicted_price < 0):
+        predicted_price = 0
 
     print(f"Le prix estimé pour une voiture avec {mileage} km est d'environ {predicted_price:.2f}€.")
 
